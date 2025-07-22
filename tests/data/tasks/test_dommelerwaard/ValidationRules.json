@@ -1,5 +1,5 @@
 {
-	"schema": "1.0",
+	"schema": "1.5",
 	"hydamo_version": "2.2",
 	"status_object": [
 		"planvorming",
@@ -1129,6 +1129,18 @@
 		},
 		{
 			"object": "hydroobject",
+			"general_rules": [
+				{
+					"id": 0,
+					"order": 0,
+					"result_variable": "custom_result",
+					"function": {
+						"custom_hydamo": {
+							"custom_function_name": "example_custom_func"
+						}
+					}
+				}
+			],
 			"validation_rules": [
 				{
 					"id": 0,
