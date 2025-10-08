@@ -1,7 +1,6 @@
-# %%
-import geopandas as gpd
 import pandas as pd
 from geopandas import GeoDataFrame
+
 from hydamo_validation.datamodel import HyDAMO
 import numpy as np
 from shapely.geometry import LineString
