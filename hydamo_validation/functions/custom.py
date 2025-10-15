@@ -1,6 +1,7 @@
+# %%
+import geopandas as gpd
 import pandas as pd
 from geopandas import GeoDataFrame
-
 from hydamo_validation.datamodel import HyDAMO
 import numpy as np
 from shapely.geometry import LineString
@@ -421,7 +422,7 @@ def intersected_pump_peilgebieden(gdf: GeoDataFrame, hydamo: HyDAMO):
     return gdf_gemaal
 
 
-def gemaal_streefpeil_value(gdf: GeoDataFrame, hydamo: HyDAMO) -> GeoDataFrame:
+def gemaal_streefpeil_value(gdf: GeoDataFrame, hydamo: HyDAMO):
     """
     Add the columns 'pgd_codes', 'streefpeil_peilgebide_zomer', 'streefpeil_peilgebide_winter',
     'soort_streefpeilom_comb', 'peilgebied_soort_comb', 'gemaal_functie_value' to the gemaal layer.
