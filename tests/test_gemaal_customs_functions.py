@@ -23,8 +23,8 @@ def test_gemaal_custom_functions():
     logger = hrt.logging.get_logger(__name__)
 
     # load data
-    TEST_DIRECTORY = Path(r"D:\github\jacosta\hhnk-threedi-tools\tests\data")
-    hydamo_file_path = TEST_DIRECTORY / "schematisation_builder" / "HyDAMO.gpkg"
+    # DATA_DIR = Path(r"D:\github\jacosta\HyDAMOValidatieModule\tests\data")
+    hydamo_file_path = DATA_DIR / "tasks" / "test_gemaal" / "HyDAMO.gpkg"
 
     # select layer to do the test
     # gemaal = gpd.read_file(hydamo_file_path, layer="gemaal")
@@ -33,7 +33,7 @@ def test_gemaal_custom_functions():
 
 
     # make a hydamo object out f the temp file
-    hydamo = HyDAMO.from_geopackage(DATA_DIR, check_columns=False)
+    hydamo = HyDAMO.from_geopackage(hydamo_file_path, check_columns=False)
 
     # run functions
     results_intersected_pump_peilgebieden = custom.intersected_pump_peilgebieden(gpd.GeoDataFrame, hydamo)
