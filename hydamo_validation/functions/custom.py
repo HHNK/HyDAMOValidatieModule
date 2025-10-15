@@ -421,7 +421,7 @@ def intersected_pump_peilgebieden(gdf: GeoDataFrame, hydamo: HyDAMO):
     return gdf_gemaal
 
 
-def gemaal_streefpeil_value(gdf: GeoDataFrame, hydamo: HyDAMO):
+def gemaal_streefpeil_value(gdf: GeoDataFrame, hydamo: HyDAMO) -> GeoDataFrame:
     """
     Add the columns 'pgd_codes', 'streefpeil_peilgebide_zomer', 'streefpeil_peilgebide_winter',
     'soort_streefpeilom_comb', 'peilgebied_soort_comb', 'gemaal_functie_value' to the gemaal layer.
