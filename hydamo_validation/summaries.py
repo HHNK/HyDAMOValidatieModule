@@ -86,7 +86,7 @@ class LayersSummary:
             setattr(
                 self,
                 layer,
-                results_gdf.join(gdf),
+                results_gdf.join(gdf, how="left", rsuffix="_right"),
             )
 
     def export(self, results_path, output_types=OUTPUT_TYPES):
