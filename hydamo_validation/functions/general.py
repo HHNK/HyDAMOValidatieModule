@@ -175,9 +175,8 @@ def buffer(gdf, radius, percentile, coverage="ahn", fill_value: float = None):
 
     for idx, row in index_gdf.cx[xmin:xmax, ymin:ymax].iterrows():
         try:
-            bathymetrie_raster = coverage_path.joinpath(
-                f'{row["bladnr"].upper()}_CM.tif'
-            )
+            # FIXME: upeer + _CM removed, not sure if validation expects cm
+            bathymetrie_raster = coverage_path.joinpath(f"{row['bladnr']}.tif")
 
             gdf_select = gdf_out.loc[
                 gdf_out["geometry"].centroid.within(row["geometry"])
@@ -326,9 +325,7 @@ def object_relation(
 
 
 def custom_hydamo(
-        gdf: GeoDataFrame,
-        hydamo: HyDAMO,
-        custom_function_name: str
+    gdf: GeoDataFrame, hydamo: HyDAMO, custom_function_name: str
 ) -> Series:
     """
     Call ``custom_function_name``, which needs to be defined in custom.py
