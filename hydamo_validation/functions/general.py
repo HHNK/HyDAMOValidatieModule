@@ -175,7 +175,7 @@ def buffer(gdf, radius, percentile, coverage="ahn", fill_value: float = None):
 
     for idx, row in index_gdf.cx[xmin:xmax, ymin:ymax].iterrows():
         try:
-            # FIXME: upeer + _CM removed, not sure if validation expects cm
+            # FIXME: upper + _CM removed, not sure if validation expects cm
             bathymetrie_raster = coverage_path.joinpath(f"{row['bladnr']}.tif")
 
             gdf_select = gdf_out.loc[
