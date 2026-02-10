@@ -2,6 +2,7 @@
 
 # %%
 import numpy as np
+import pandas as pd
 from shapely.geometry import LineString, Point, Polygon
 
 from hydamo_validation import general_functions, logic_functions, topologic_functions
@@ -95,20 +96,42 @@ def gdf_add_summary(
     tags_indices,
     separator=LIST_SEPARATOR,
 ):
-    gdf.loc[gdf[variable] == False, "rating"] -= penalty
-    gdf.loc[gdf[variable] == False, "summary"] += f"{error_message}{separator}"
-    gdf.loc[gdf[variable] == False, "invalid"] += f"{rule_id}{separator}"
-    gdf.loc[gdf[variable] == True, "valid"] += f"{rule_id}{separator}"
-    gdf.loc[gdf[variable].isna(), "ignored"] += f"{rule_id}{separator}"
-    if critical:
-        gdf.loc[gdf[variable] == False, "invalid_critical"] += f"{rule_id}{separator}"
-    else:
-        gdf.loc[gdf[variable] == False, "invalid_non_critical"] += (
-            f"{rule_id}{separator}"
-        )
+    # Cache boolean masks for efficiency
+    false_mask = gdf[variable] == False
+    true_mask = gdf[variable] == True
+    ignored_mask = gdf[variable].isna()
+
+    rule_str = f"{rule_id}{separator}"
+
+    # Handle False values (validation failures)
+    if false_mask.any():
+        gdf.loc[false_mask, "rating"] -= penalty
+        gdf.loc[false_mask, "summary"] += f"{error_message}{separator}"
+        gdf.loc[false_mask, "invalid"] += rule_str
+        if critical:
+            gdf.loc[false_mask, "invalid_critical"] += rule_str
+        else:
+            gdf.loc[false_mask, "invalid_non_critical"] += rule_str
+
+    # Handle True values (validation successes)
+    if true_mask.any():
+        gdf.loc[true_mask, "valid"] += rule_str
+
+    # Handle ignored (missing data) - add to invalid_critical, NOT to summary (grouped later)
+    if ignored_mask.any():
+        gdf.loc[ignored_mask, "invalid"] += rule_str
+        gdf.loc[ignored_mask, "invalid_critical"] += rule_str
+        gdf.loc[ignored_mask, "rating"] -= 5
+        gdf.loc[ignored_mask, "ignored"] += rule_str
+
+    # Handle tags
     if tags is not None:
-        gdf.loc[tags_indices, ("tags_assigned")] += f"{tags}{separator}"
-        gdf.loc[gdf[variable] == False, "tags_invalid"] += f"{tags}{separator}"
+        gdf.loc[tags_indices, "tags_assigned"] += f"{tags}{separator}"
+        if false_mask.any():
+            gdf.loc[false_mask, "tags_invalid"] += f"{tags}{separator}"
+        if ignored_mask.any():
+            gdf.loc[ignored_mask, "tags_invalid"] += f"{tags}{separator}"
+
     return gdf
 
 
@@ -142,6 +165,18 @@ def execute(
         object_gdf["rating"] = 10
         for col in SUMMARY_COLUMNS:
             object_gdf[col] = ""
+
+        # Initialize summary with syntax issues
+        if "syntax_summary" in object_gdf.columns:
+            has_syntax = object_gdf["syntax_summary"].notna() & (
+                object_gdf["syntax_summary"] != ""
+            )
+            object_gdf.loc[has_syntax, "summary"] = (
+                object_gdf.loc[has_syntax, "syntax_summary"] + "; "
+            )
+
+        # Track missing columns across all rules (per feature)
+        object_gdf["_missing_cols"] = [set() for _ in range(len(object_gdf))]
 
         # general rule section
         if "general_rules" in object_rules.keys():
@@ -251,6 +286,30 @@ def execute(
 
                 # remove all nan indices
                 notna_indices = _notna_indices(object_gdf, input_variables)
+                missing_data_indices = [
+                    idx for idx in indices if idx not in notna_indices
+                ]
+
+                # Accumulate missing columns per feature (identify which columns each feature is missing)
+                if missing_data_indices:
+                    # Collect all columns to check from input_variables
+                    cols_to_check = []
+                    for k, v in input_variables.items():
+                        if k not in NOTNA_COL_IGNORE:
+                            cols_to_check.extend([v] if not isinstance(v, list) else v)
+                    cols_to_check = [
+                        c for c in cols_to_check if c in object_gdf.columns
+                    ]
+
+                    # For each feature, identify which specific columns are missing
+                    for idx in missing_data_indices:
+                        missing_for_idx = [
+                            col
+                            for col in cols_to_check
+                            if pd.isna(object_gdf.at[idx, col])
+                        ]
+                        object_gdf.at[idx, "_missing_cols"].update(missing_for_idx)
+
                 indices = [i for i in indices[indices.notna()] if i in notna_indices]
 
                 # add object_relation
@@ -346,6 +405,14 @@ def execute(
                 else:
                     pass
 
+        # Add grouped missing data message once per feature
+        has_missing = object_gdf["_missing_cols"].apply(len) > 0
+        for idx in object_gdf[has_missing].index:
+            cols_list = sorted(object_gdf.at[idx, "_missing_cols"])
+            cols_str = ", ".join(cols_list)
+            msg = f"ontbrekende waarde{'n' if len(cols_list) > 1 else ''}: {cols_str}"
+            object_gdf.loc[idx, "summary"] += f"{msg}{LIST_SEPARATOR}"
+
         # drop columns
         drop_columns = [
             i
@@ -355,7 +422,9 @@ def execute(
             + ["nen3610id", "geometry", "rating"]
             + SUMMARY_COLUMNS
         ]
-        object_gdf.drop(columns=drop_columns, inplace=True)
+        # Also drop temporary tracking columns
+        drop_columns.extend(["_missing_cols", "syntax_summary"])
+        object_gdf.drop(columns=drop_columns, inplace=True, errors="ignore")
         # re_order columns
         column_order = ["nen3610id"]
         column_order += list(col_translation.keys())
