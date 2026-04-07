@@ -374,7 +374,8 @@ def object_relation(
 def custom_hydamo(
         gdf: GeoDataFrame,
         hydamo: HyDAMO,
-        custom_function_name: str
+        custom_function_name: str,
+        kwargs: dict | None = None,
 ) -> Series:
     """
     Call ``custom_function_name``, which needs to be defined in custom.py
@@ -387,4 +388,6 @@ def custom_hydamo(
         Input HyDAMO object
     custom_function_name: name of the function to be called
     """
-    return getattr(custom_functions, custom_function_name)(gdf, hydamo)
+    if kwargs == None:
+        kwargs = {}
+    return getattr(custom_functions, custom_function_name)(gdf, hydamo, **kwargs)
