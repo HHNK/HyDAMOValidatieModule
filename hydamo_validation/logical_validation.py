@@ -12,8 +12,6 @@ SUMMARY_COLUMNS = [
     "invalid",
     "invalid_critical",
     "invalid_non_critical",
-    "invalid_auto_fixable",
-    "invalid_manual_fixable",
     "ignored",
     "summary",
     "tags_assigned",
@@ -95,7 +93,6 @@ def gdf_add_summary(
     critical,
     tags,
     tags_indices,
-    auto_fixable=False,
     separator=LIST_SEPARATOR,
 ):
     gdf.loc[gdf[variable] == False, "rating"] -= penalty
@@ -109,15 +106,6 @@ def gdf_add_summary(
         gdf.loc[gdf[variable] == False, "invalid_non_critical"] += (
             f"{rule_id}{separator}"
         )
-    if auto_fixable:
-        gdf.loc[gdf[variable] == False, "invalid_auto_fixable"] += (
-            f"{rule_id}{separator}"
-        )
-    else:
-        gdf.loc[gdf[variable] == False, "invalid_manual_fixable"] += (
-            f"{rule_id}{separator}"
-        )
-
     if tags is not None:
         gdf.loc[tags_indices, ("tags_assigned")] += f"{tags}{separator}"
         gdf.loc[gdf[variable] == False, "tags_invalid"] += f"{tags}{separator}"
@@ -328,8 +316,6 @@ def execute(
                 else:
                     tags = None
 
-                auto_fixable = rule.get("auto_fixable", False)
-
                 exceptions += filter_indices
                 _valid_indices = object_gdf[~object_gdf.index.isna()].index
                 tags_indices = [i for i in _valid_indices if i not in exceptions]
@@ -342,7 +328,6 @@ def execute(
                     critical=critical,
                     tags=tags,
                     tags_indices=tags_indices,
-                    auto_fixable=auto_fixable,
                 )
 
             except Exception as e:
