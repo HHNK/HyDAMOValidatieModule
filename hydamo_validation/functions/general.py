@@ -117,7 +117,6 @@ def divide(gdf, left, right):
     expression = " / ".join(map(str, [left, right]))
     return gdf.eval(expression)
 
-
 def multiply(gdf, left, right):
     """
     Multiply 'left' with 'right'
@@ -139,6 +138,53 @@ def multiply(gdf, left, right):
     """
     expression = " * ".join(map(str, [left, right]))
     return gdf.eval(expression)
+
+
+def equal(gdf, to):
+    """
+    Set an attribute to 'to'
+
+    Parameters
+    ----------
+    gdf : GeoDataFrame
+        Input GeoDataFrame
+    to : str, numeric
+        Left column or value in expression
+
+    Returns
+    -------
+    result : Series
+        Float series
+
+    """
+
+    if to in gdf.columns:
+        to = gdf[to]
+    result = to
+
+    return result
+
+def omit(gdf, flag):
+    """
+    Create or get a column to flag feature omissions
+
+    Parameters
+    ----------
+    gdf : GeoDataFrame
+        Input GeoDataFrame
+    flag : str
+        Flag column
+
+    Returns
+    -------
+    result : Series
+        Float series
+
+    """
+
+    result = flag
+
+    return result
 
 
 def buffer(gdf, radius, percentile, coverage="ahn", fill_value: float = None):

@@ -295,3 +295,72 @@ def _is_linestring_straight(line) -> float:
             max_cross = abs(cross)
 
     return max_cross
+
+def fix_relative_to_level(    
+    gdf,
+    datamodel,
+    parameter,
+    compare_parameter,
+    operator
+) -> pd.Series:
+    """
+    Check if the value of a parameter in an object is lower/greater than an
+    upstream/downstream value of another parameter from another object-layer.
+
+
+    Parameters
+    ----------
+    gdf : ExtendedGeoDataframe
+        ExtendedGeoDataFrame, HyDAMO hydroobject layer
+    datamodel : HyDAMO
+        HyDAMO datamodel class
+
+    Returns
+    -------
+    Pandas Series
+    """
+    if parameter in gdf.columns:
+        left = gdf[parameter]
+    else:
+        left = parameter
+
+    if compare_parameter in gdf.columns:
+        right = gdf[compare_parameter]
+    else:
+        right = compare_parameter
+
+    if operator == "-":
+        result = left - right
+    return result
+
+def fix_equal_or_logic(    
+    gdf,
+    datamodel,
+    if_cat_1,
+	if_cat_else,
+) -> pd.Series:
+    """
+    Check if the value of a parameter in an object is lower/greater than an
+    upstream/downstream value of another parameter from another object-layer.
+
+
+    Parameters
+    ----------
+    gdf : ExtendedGeoDataframe
+        ExtendedGeoDataFrame, HyDAMO hydroobject layer
+    datamodel : HyDAMO
+        HyDAMO datamodel class
+
+    Returns
+    -------
+    Pandas Series
+    """
+    cat = 1
+
+    if cat == 1:
+        result = if_cat_1
+    else:
+        result = if_cat_else
+
+    return result
+    
