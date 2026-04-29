@@ -363,4 +363,30 @@ def fix_equal_or_logic(
         result = if_cat_else
 
     return result
+
+def if_else(    
+    gdf,
+    datamodel,
+    logic,
+    true,
+	false,
+) -> pd.Series:
+    """
+    Check if the value of a parameter in an object is lower/greater than an
+    upstream/downstream value of another parameter from another object-layer.
+
+
+    Parameters
+    ----------
+    gdf : ExtendedGeoDataframe
+        ExtendedGeoDataFrame, HyDAMO hydroobject layer
+    datamodel : HyDAMO
+        HyDAMO datamodel class
+
+    Returns
+    -------
+    Pandas Series
+    """
+
+    return logic
     
