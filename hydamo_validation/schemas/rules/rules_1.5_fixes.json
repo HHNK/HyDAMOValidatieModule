@@ -10,7 +10,7 @@
 		"schema": {
 			"type": "string",
 			"enum": [
-				"1.6"
+				"1.5_fixes"
 			]
 		},
 		"hydamo_version": {
