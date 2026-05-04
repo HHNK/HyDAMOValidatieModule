@@ -358,6 +358,8 @@ def if_else(gdf, datamodel, logic, true, false, attribute) -> pd.Series:
     # selecteer juiste colomn (op basis van attribute) en maak daarvan pd.Series van
     if attribute in gdf.columns:
         raw_series = gdf[attribute]
+    else:
+        raise ValueError(f"Attribute {attribute} is not present in the GeoDataFrame.")
 
     # pas deze pd.Series aan op basis van result
     for i in logic.index:
