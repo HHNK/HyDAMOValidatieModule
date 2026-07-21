@@ -295,3 +295,79 @@ def _is_linestring_straight(line) -> float:
             max_cross = abs(cross)
 
     return max_cross
+
+
+def fix_relative_to_level(
+    gdf, datamodel, parameter, compare_parameter, operator
+) -> pd.Series:
+    """
+    Check if the value of a parameter in an object is lower/greater than an
+    upstream/downstream value of another parameter from another object-layer.
+
+
+    Parameters
+    ----------
+    gdf : ExtendedGeoDataframe
+        ExtendedGeoDataFrame, HyDAMO hydroobject layer
+    datamodel : HyDAMO
+        HyDAMO datamodel class
+
+    Returns
+    -------
+    Pandas Series
+    """
+    if parameter in gdf.columns:
+        left = gdf[parameter]
+    else:
+        left = parameter
+
+    if compare_parameter in gdf.columns:
+        right = gdf[compare_parameter]
+    else:
+        right = compare_parameter
+
+    if operator == "-":
+        result = left - right
+    return result
+
+
+def if_else(gdf, datamodel, logic, true, false, attribute) -> pd.Series:
+    """
+    Fill in value based on check result (TRUE/FALSE)
+
+    Parameters
+    ----------
+    gdf : ExtendedGeoDataframe
+        ExtendedGeoDataFrame, HyDAMO hydroobject layer
+    datamodel : HyDAMO
+        HyDAMO datamodel class
+    logic: Pandas Series
+        contains results of logical test (True/False)
+    true: string, int, float
+        value when True
+    false: string, int, float
+        value when False
+    attribute: string
+        name of attribute which needs to be changed
+
+    Returns
+    -------
+    Pandas Series
+    """
+
+    # selecteer juiste colomn (op basis van attribute) en maak daarvan pd.Series van
+    if attribute in gdf.columns:
+        raw_series = gdf[attribute]
+    else:
+        raise ValueError(f"Attribute {attribute} is not present in the GeoDataFrame.")
+
+    # pas deze pd.Series aan op basis van result
+    for i in logic.index:
+        if not logic[i]:
+            raw_series[i] = false
+        else:
+            raw_series[i] = true
+
+    result = raw_series
+
+    return result
