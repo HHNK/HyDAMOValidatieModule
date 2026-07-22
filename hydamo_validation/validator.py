@@ -219,8 +219,8 @@ def _validator(
             if not path.exists():
                 missing_paths += [str(path)]
         if missing_paths:
-            result_summary.error += [f'missing_paths: {",".join(missing_paths)}']
-            raise FileNotFoundError(f'missing_paths: {",".join(missing_paths)}')
+            result_summary.error += [f"missing_paths: {','.join(missing_paths)}"]
+            raise FileNotFoundError(f"missing_paths: {','.join(missing_paths)}")
         else:
             validation_rules_sets = read_validation_rules(
                 validation_rules_json, result_summary
@@ -232,7 +232,7 @@ def _validator(
         ]
         if unsupported_output_types:
             error_message = (
-                r"unsupported output types: " f'{",".join(unsupported_output_types)}'
+                r"unsupported output types: " f"{','.join(unsupported_output_types)}"
             )
             result_summary.error += [error_message]
             raise TypeError(error_message)
@@ -300,6 +300,36 @@ def _validator(
                 validation_schema=datamodel.validation_schemas[layer],
                 keep_columns=INCLUDE_COLUMNS,
             )
+
+            # Initialize syntax_summary column
+            result_gdf["syntax_summary"] = ""
+
+            # Create readable syntax summary for critical errors
+            if "syntax_geometry" in result_gdf.columns:
+                has_geom_error = result_gdf["syntax_geometry"].str.contains(
+                    "7", na=False
+                )
+                result_gdf.loc[has_geom_error, "syntax_summary"] = (
+                    "geometrie is invalid"
+                )
+
+            # Check for unconvertable errors (fout 1)
+            error_messages = []
+            for col in result_gdf.filter(regex="^syntax_").columns:
+                if col not in ["syntax_geometry", "syntax_oordeel", "syntax_summary"]:
+                    has_error_1 = result_gdf[col].str.contains("1", na=False)
+                    if has_error_1.any():
+                        col_name = col.replace("syntax_", "")
+                        error_msg = f"{col_name} niet converteerbaar"
+                        # Build messages per row more efficiently
+                        for idx in result_gdf[has_error_1].index:
+                            current = result_gdf.at[idx, "syntax_summary"]
+                            result_gdf.at[idx, "syntax_summary"] = (
+                                f"{current}; {error_msg}" if current else error_msg
+                            )
+
+            # Copy to gdf
+            gdf["syntax_summary"] = result_gdf["syntax_summary"]
 
             # Add the syntax-validation result to the results_summary
             layers_summary.set_data(result_gdf, layer, schema["geometry"])
